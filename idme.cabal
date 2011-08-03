@@ -48,7 +48,7 @@ Executable idme
   Main-is:           Idme.hs
   
   -- Packages needed in order to build this package.
-  Build-depends:     base, network
+  Build-depends:     base, network, hsyslog
   
   -- Modules not exported by this package.
   -- Other-modules:       

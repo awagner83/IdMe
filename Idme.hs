@@ -1,8 +1,9 @@
 module Main where
 
 import Control.Concurrent
-import System.IO
 import Network
+import System.IO
+import System.Posix.Syslog
 
 type NodeId = String
 type IdSequence = [String]
@@ -17,6 +18,8 @@ main = do
     txHandle <- openFile "txlog" AppendMode
     hSetBuffering txHandle NoBuffering
     socket <- listenOn $ PortNumber 8888
+
+    syslog Info "Starting on port 8888"
     idLoop (idSequence 1 "1") txHandle socket
 
 -- Main id-serving loop
@@ -36,3 +39,4 @@ idLoop (id:ids) txHandle sock = do
 idSequence :: Integer -> NodeId -> IdSequence
 idSequence start nodeId = map format [start..]
     where format x = (show x) ++ (idNodeDelim : nodeId)
+
