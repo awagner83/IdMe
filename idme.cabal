@@ -14,4 +14,5 @@ Executable idme
   Hs-source-dirs:    src
   Main-is:           Idme.hs
   Build-depends:     base, network, hsyslog
+  Ghc-options:         -Wall
   
