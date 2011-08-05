@@ -23,7 +23,7 @@ run logFn = do
     idLoop (idSequence 1 cfg) txHandle socket
 
 -- |Main id-serving loop
-idLoop :: IdSequence -> Handle -> Socket -> IO b
+idLoop :: IdSequence -> Handle -> Socket -> IO ()
 idLoop [] _ _ = fail "We're fresh out of ids!  Please come back later."
 idLoop (x:xs) txHandle sock = do
     hPutChar txHandle '.'   -- Add a byte to the tx-log that we can count later
