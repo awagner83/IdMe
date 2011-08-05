@@ -10,10 +10,9 @@ type IdSequence = [String]
 type LogFn = (String -> IO ())
 
 -- |Init system and kick-off main loop
-run :: LogFn -> IO ()
-run logFn = do
-    let cfg = C.defaultConfig { C.dataDir = "." }
-        portNum = C.portNum cfg
+run :: LogFn -> C.Config -> IO ()
+run logFn cfg = do
+    let portNum = C.portNum cfg
 
     txHandle <- openFile (C.txFile cfg) AppendMode
     hSetBuffering txHandle NoBuffering
