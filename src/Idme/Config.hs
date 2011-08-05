@@ -20,6 +20,7 @@ data Config = Config { portNum :: PortNumber
                      , nodeIdDelim :: Char }
 
 -- |Default server configuration values
+defaultConfig :: Config
 defaultConfig = Config { portNum = 8888
                        , dataDir = "/var/data/idme"
                        , nodeId = Nothing

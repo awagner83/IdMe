@@ -25,16 +25,17 @@ run = do
 
 -- |Main id-serving loop
 idLoop :: IdSequence -> Handle -> Socket -> IO b
-idLoop (id:ids) txHandle sock = do
+idLoop [] _ _ = fail "We're fresh out of ids!  Please come back later."
+idLoop (x:xs) txHandle sock = do
     hPutChar txHandle '.'
     (clientH, _, _) <- accept sock
 
     -- Remaining work need not be synchronous
-    forkIO $ do
-        hPutStr clientH id
+    _ <- forkIO $ do
+        hPutStr clientH x
         hClose clientH
 
-    idLoop ids txHandle sock
+    idLoop xs txHandle sock
 
 -- |Sequence of ids to hand to clients.
 idSequence :: Integer -> C.Config -> IdSequence
