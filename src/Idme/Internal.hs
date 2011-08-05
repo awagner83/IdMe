@@ -6,7 +6,6 @@ import System.IO
 
 import qualified Idme.Config as C
 
-type NodeId = String
 type IdSequence = [String]
 type LogFn = (String -> IO ())
 
