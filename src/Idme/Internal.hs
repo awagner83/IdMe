@@ -27,7 +27,7 @@ run = do
 idLoop :: IdSequence -> Handle -> Socket -> IO b
 idLoop [] _ _ = fail "We're fresh out of ids!  Please come back later."
 idLoop (x:xs) txHandle sock = do
-    hPutChar txHandle '.'
+    hPutChar txHandle '.'   -- Add a byte to the tx-log that we can count later
     (clientH, _, _) <- accept sock
 
     -- Remaining work need not be synchronous
