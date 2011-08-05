@@ -1,4 +1,4 @@
-module Main where
+module Idme.Internal where
 
 import Control.Concurrent
 import Network
@@ -13,8 +13,8 @@ idNodeDelim :: Char
 idNodeDelim = '.'
 
 -- Init system and kick-off main loop
-main :: IO b
-main = do
+run :: IO ()
+run = do
     txHandle <- openFile "txlog" AppendMode
     hSetBuffering txHandle NoBuffering
     socket <- listenOn $ PortNumber 8888
