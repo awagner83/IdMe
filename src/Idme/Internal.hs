@@ -3,16 +3,16 @@ module Idme.Internal where
 import Control.Concurrent
 import Network
 import System.IO
-import System.Posix.Syslog
 
 import qualified Idme.Config as C
 
 type NodeId = String
 type IdSequence = [String]
+type LogFn = (String -> IO ())
 
 -- |Init system and kick-off main loop
-run :: IO ()
-run = do
+run :: LogFn -> IO ()
+run logFn = do
     let cfg = C.defaultConfig { C.dataDir = "." }
         portNum = C.portNum cfg
 
@@ -20,7 +20,7 @@ run = do
     hSetBuffering txHandle NoBuffering
     socket <- listenOn $ PortNumber portNum
 
-    syslog Info $ "Starting on port " ++ (show portNum)
+    logFn $ "Starting on port " ++ (show portNum)
     idLoop (idSequence 1 cfg) txHandle socket
 
 -- |Main id-serving loop

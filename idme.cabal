@@ -13,7 +13,7 @@ Cabal-version:       >=1.6
 Executable idme
   Hs-source-dirs:    src
   Main-is:           Idme.hs
-  Build-depends:     base >= 4 && < 5, network, hsyslog
+  Build-depends:     base >= 4 && < 5, network
   Ghc-options:       -Wall
   
 Source-repository head
