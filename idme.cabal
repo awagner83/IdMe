@@ -8,11 +8,14 @@ Author:              Adam Wagner
 Maintainer:          awagner83@gmail.com
 Category:            ID Server
 Build-type:          Simple
-Cabal-version:       >=1.2
+Cabal-version:       >=1.6
 
 Executable idme
   Hs-source-dirs:    src
   Main-is:           Idme.hs
-  Build-depends:     base, network, hsyslog
-  Ghc-options:         -Wall
+  Build-depends:     base >= 4 && < 5, network, hsyslog
+  Ghc-options:       -Wall
   
+Source-repository head
+  type:              git
+  location:          git://github.com/awagner83/IdMe.git
