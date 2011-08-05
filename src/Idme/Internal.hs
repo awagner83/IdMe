@@ -5,24 +5,25 @@ import Network
 import System.IO
 import System.Posix.Syslog
 
+import qualified Idme.Config as C
+
 type NodeId = String
 type IdSequence = [String]
 
--- Char dividing incrementing-id from node-id
-idNodeDelim :: Char
-idNodeDelim = '.'
-
--- Init system and kick-off main loop
+-- |Init system and kick-off main loop
 run :: IO ()
 run = do
-    txHandle <- openFile "txlog" AppendMode
+    let cfg = C.defaultConfig { C.dataDir = "." }
+        portNum = C.portNum cfg
+
+    txHandle <- openFile (C.txFile cfg) AppendMode
     hSetBuffering txHandle NoBuffering
-    socket <- listenOn $ PortNumber 8888
+    socket <- listenOn $ PortNumber portNum
 
-    syslog Info "Starting on port 8888"
-    idLoop (idSequence 1 "1") txHandle socket
+    syslog Info $ "Starting on port " ++ (show portNum)
+    idLoop (idSequence 1 cfg) txHandle socket
 
--- Main id-serving loop
+-- |Main id-serving loop
 idLoop :: IdSequence -> Handle -> Socket -> IO b
 idLoop (id:ids) txHandle sock = do
     hPutChar txHandle '.'
@@ -35,8 +36,12 @@ idLoop (id:ids) txHandle sock = do
 
     idLoop ids txHandle sock
 
--- Sequence of ids to hand to clients.
-idSequence :: Integer -> NodeId -> IdSequence
-idSequence start nodeId = map format [start..]
-    where format x = (show x) ++ (idNodeDelim : nodeId)
+-- |Sequence of ids to hand to clients.
+idSequence :: Integer -> C.Config -> IdSequence
+idSequence start cfg = map (format cfg) [start..]
+
+-- |Format ids before returning the client (add node-id if configured)
+format :: C.Config -> Integer -> String
+format C.Config {C.nodeId=Nothing}                 x = show x
+format C.Config {C.nodeId=Just n, C.nodeIdDelim=d} x = (show x) ++ (d:n)
 
