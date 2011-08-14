@@ -6,19 +6,20 @@ import System.IO
 import System.IO.Error
 import Control.Exception (tryJust)
 
-type LogFn = (String -> IO ())
+import qualified Idme.State as S
 
+type ClientHandle = Handle
 
 -- | Worker thread function
-worker :: LogFn -> Handle -> Handle -> MVar Integer -> IO ()
-worker logFn txHandle clientH counter = do
+worker :: S.AppState -> ClientHandle -> IO ()
+worker st clientH = do
     req <- tryJust (guard . isEOFError) (hGetLine clientH)
     case req of
-        Left _ -> hClose clientH >> logFn "Client disconnected"
+        Left _ -> hClose clientH >> (S.log st) "Client disconnected"
         Right _ -> do
-            idInc <- modifyMVar counter (getId txHandle)
+            idInc <- modifyMVar (S.counter st) (getId $ S.txHandle st)
             hPutStr clientH $ formatId idInc
-            worker logFn txHandle clientH counter
+            worker st clientH
 
 
 -- | Get next counter-id in sequence

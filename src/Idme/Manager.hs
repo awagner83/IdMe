@@ -5,10 +5,10 @@ import Network
 import System.IO
 
 import qualified Idme.Config as C
+import qualified Idme.State as S
 import Idme.Worker (worker)
 
 type LogFn = (String -> IO ())
-
 
 -- | Open files and init connection listener
 runServer :: LogFn -> C.Config -> IO ()
@@ -19,16 +19,17 @@ runServer logFn cfg = do
     counter <- newMVar 1
 
     logFn $ "Starting on port " ++ (show portNum)
-    serverLoop logFn txHandle socket counter
+    serverLoop $ S.AppState { S.log = logFn, S.txHandle = txHandle
+                            , S.socket = socket, S.counter = counter }
 
 
 -- | Main connection accepting loop
-serverLoop :: LogFn -> Handle -> Socket -> MVar Integer -> IO ()
-serverLoop logFn txHandle socket counter = do
-    (clientH, _, _) <- accept socket
+serverLoop :: S.AppState -> IO ()
+serverLoop st = do
+    (clientH, _, _) <- accept $ S.socket st
     hSetBuffering clientH LineBuffering
-    _ <- forkIO $ worker logFn txHandle clientH counter
-    serverLoop logFn txHandle socket counter
+    _ <- forkIO $ worker st clientH
+    serverLoop st
 
 
 -- | Get transaction log handler and set buffering mode
