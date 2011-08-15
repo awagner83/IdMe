@@ -27,8 +27,7 @@ runServer logFn cfg = do
 serverLoop :: S.AppState -> IO ()
 serverLoop st = do
     (clientH, _, _) <- accept $ S.socket st
-    hSetBuffering clientH LineBuffering
-    _ <- forkIO $ worker st clientH
+    _ <- forkIO $ hSetBuffering clientH LineBuffering >> worker st clientH
     serverLoop st
 
 
