@@ -14,9 +14,10 @@ type LogFn = (String -> IO ())
 runServer :: LogFn -> C.Config -> IO ()
 runServer logFn cfg = do
     let portNum = C.portNum cfg
-    txHandle <- getTxFile cfg
+    initialId <- getPersistentId cfg
+    txHandle <- getFile (C.txFile cfg) AppendMode
     socket <- listenOn $ PortNumber portNum
-    counter <- newMVar 1
+    counter <- newMVar initialId
 
     logFn $ "Starting on port " ++ (show portNum)
     serverLoop $ S.AppState { S.log = logFn, S.txHandle = txHandle
@@ -31,10 +32,17 @@ serverLoop st = do
     serverLoop st
 
 
--- | Get transaction log handler and set buffering mode
-getTxFile :: C.Config -> IO Handle
-getTxFile cfg = do
-    txHandle <- openFile (C.txFile cfg) AppendMode
+-- | Get inital count value
+getPersistentId :: C.Config -> IO Integer
+getPersistentId cfg =
+    let tx = C.txFile cfg
+    in withFile tx ReadMode hFileSize
+
+
+-- | Get file handle and set buffering to None
+getFile :: String -> IOMode -> IO Handle
+getFile name mode = do
+    txHandle <- openFile name mode
     hSetBuffering txHandle NoBuffering
     return txHandle
 
