@@ -1,38 +1,33 @@
-module Idme.Worker where
+module Idme.Worker (handleClient) where
 
-import Control.Concurrent
-import Control.Monad (guard)
-import System.IO
-import System.IO.Error
-import Control.Exception (tryJust)
+import Control.Concurrent.Chan (writeChan)
+import Control.Concurrent.STM (atomically, newTVar, readTVar, retry)
+import Data.Maybe (fromJust)
+import System.IO (Handle, hGetLine, hPutStr, hFlush)
 
-import qualified Idme.State as S
-
-type ClientHandle = Handle
-
--- | Worker thread function
-worker :: S.AppState -> ClientHandle -> IO ()
-worker st clientH = do
-    req <- tryJust (guard . isEOFError) (hGetLine clientH)
-    case req of
-        Left _ -> hClose clientH >> (S.log st) "Client disconnected"
-        Right _ -> do
-            idInc <- modifyMVar (S.counter st) (getId $ S.txHandle st)
-            hPutStr clientH $ formatId idInc
-            worker st clientH
+import Idme.Log (LogChan)
+import Idme.Sync (IdChan)
 
 
--- | Get next counter-id in sequence
---   Access to getId is synchronized with modifyMVar (see 'worker')
---   Tx logging and cleanup are also managed here.
-getId :: Handle -> Integer -> IO (Integer, Integer)
-getId txHandle start = do
-    let new = start + 1
-    hPutChar txHandle '.'
-    return (new, new)
+-- | Take client handle and deal with given requests
+handleClient :: LogChan -> IdChan -> Handle -> IO ()
+handleClient lChan sChan client = do
+    req <- hGetLine client
+    id <- wait sChan
+    hPutStr client $ show id
+    hFlush client
+    handleClient lChan sChan client
 
 
--- | Friendly representation of id
-formatId :: Integer -> String
-formatId x = (show x) ++ "\n"
+-- | Wait for resp from Chan
+wait :: IdChan -> IO Integer
+wait chan = do
+    -- Request new id from sync thread
+    tvar <- atomically $ newTVar Nothing
+    writeChan chan tvar
+
+    -- Wait for response from channel
+    fmap fromJust $ atomically $ do x <- readTVar tvar
+                                    case x of Nothing -> retry
+                                              Just a -> return x
 
