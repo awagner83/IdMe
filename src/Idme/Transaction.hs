@@ -1,4 +1,11 @@
-module Idme.Transaction (idRequest, getId) where
+module Idme.Transaction ( IdTransaction()
+                        , IdTVar
+                        , IdValue
+                        , Namespace
+                        , idRequest
+                        , getId
+                        , putId
+                        ) where
 
 import Control.Concurrent.STM (STM, atomically, retry)
 import Control.Concurrent.STM.TVar
@@ -27,6 +34,10 @@ getId :: IdTVar -> IO IdValue
 getId t = unpack <$> atomically (readTVar t >>= attemptIdGet)
     where unpack (Request  _) = fail "What's up STM?  This cannot be?!"
           unpack (Response x) = x
+
+-- | Write new ID to IdTransaction TVar value
+putId :: IdValue -> IdTVar -> IO ()
+putId x = atomically . flip writeTVar (Response x)
 
 -- | Attempt to fetch id from STM monad
 attemptIdGet :: IdTransaction -> STM IdTransaction

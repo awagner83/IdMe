@@ -1,33 +1,23 @@
 module Idme.Worker (handleClient) where
 
 import Control.Concurrent.Chan (writeChan)
-import Control.Concurrent.STM (atomically, newTVar, readTVar, retry)
-import Data.Maybe (fromJust)
 import System.IO (Handle, hGetLine, hPutStr, hFlush)
 
 import Idme.Log (LogChan)
 import Idme.Sync (IdChan)
+import Idme.Transaction (IdValue, Namespace, idRequest, getId)
+import Idme.Util ((>>-))
 
 
 -- | Take client handle and deal with given requests
 handleClient :: LogChan -> IdChan -> Handle -> IO ()
 handleClient lChan sChan client = do
-    req <- hGetLine client
-    id <- wait sChan
-    hPutStr client $ show id
+    hPutStr client =<< wait sChan =<< hGetLine client
     hFlush client
     handleClient lChan sChan client
 
 
 -- | Wait for resp from Chan
-wait :: IdChan -> IO Integer
-wait chan = do
-    -- Request new id from sync thread
-    tvar <- atomically $ newTVar Nothing
-    writeChan chan tvar
-
-    -- Wait for response from channel
-    fmap fromJust $ atomically $ do x <- readTVar tvar
-                                    case x of Nothing -> retry
-                                              Just a -> return x
+wait :: IdChan -> Namespace -> IO IdValue
+wait chan ns = idRequest ns >>- writeChan chan >>= getId
 
