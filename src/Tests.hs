@@ -1,15 +1,15 @@
 import Control.Monad.Writer
 import Test.Framework (defaultMain, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.QuickCheck
 
 import Idme.Util (constF, (>>-))
 
 
-main = defaultMain tests
-
-tests = [ testGroup "Utility" [ testProperty "constF" prop_constF
-                              , testProperty ">--"    prop_util_operator1 ] ]
+main :: IO ()
+main = defaultMain [
+    testGroup "Utility" [ testProperty "constF" prop_constF
+                        , testProperty ">--"    prop_util_operator1 ]
+    ]
 
 -- | Test constF with Writer [Bool]
 prop_constF :: Bool -> Bool
