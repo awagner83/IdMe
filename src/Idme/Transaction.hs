@@ -5,11 +5,11 @@ module Idme.Transaction ( IdTransaction()
                         , idRequest
                         , getId
                         , putId
+                        , getNs
                         ) where
 
 import Control.Concurrent.STM (STM, atomically, retry)
 import Control.Concurrent.STM.TVar
-import Data.Functor ((<$>))
 
 
 -- | Transaction TVar
@@ -29,18 +29,25 @@ data IdTransaction = Request Namespace | Response IdValue
 idRequest :: Namespace -> IO IdTVar
 idRequest = atomically . newTVar . Request
 
+-- | Extract Namespace from IdTransaction value
+getNs :: IdTVar -> IO Namespace
+getNs t = atomically (readTVar t >>= attemptNsGet)
+
 -- | Extract ID from IdTransaction value
 getId :: IdTVar -> IO IdValue
-getId t = unpack <$> atomically (readTVar t >>= attemptIdGet)
-    where unpack (Request  _) = fail "What's up STM?  This cannot be?!"
-          unpack (Response x) = x
+getId t = atomically (readTVar t >>= attemptIdGet)
 
 -- | Write new ID to IdTransaction TVar value
 putId :: IdValue -> IdTVar -> IO ()
 putId x = atomically . flip writeTVar (Response x)
 
+-- | Attempt to fetch ns from STM monad
+attemptNsGet :: IdTransaction -> STM Namespace
+attemptNsGet (Response _) = retry
+attemptNsGet (Request  a) = return a
+
 -- | Attempt to fetch id from STM monad
-attemptIdGet :: IdTransaction -> STM IdTransaction
+attemptIdGet :: IdTransaction -> STM IdValue
 attemptIdGet (Request  _) = retry
-attemptIdGet a = return a
+attemptIdGet (Response a) = return a
 
