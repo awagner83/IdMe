@@ -13,7 +13,8 @@ Cabal-version:       >=1.6
 Executable idme
   Hs-source-dirs:    src
   Main-is:           Idme.hs
-  Build-depends:     base >= 4 && < 5, network, stm, containers
+  Build-depends:     base >= 4 && < 5, bytestring, network, stm, containers,
+                     cereal, directory
   Ghc-options:       -Wall -threaded -rtsopts
 
 Executable test_idme

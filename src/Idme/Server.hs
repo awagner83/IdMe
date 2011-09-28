@@ -15,7 +15,7 @@ import Idme.Worker (handleClient)
 runServer :: Config -> IO ()
 runServer cfg = do
     lChan <- runLogger stdoutLogger
-    sChan <- runSync 0 
+    sChan <- runSync "ids.db"
     socket <- listenOn (PortNumber 8888)
 
     writeChan lChan $ InfoLog "Starting things up!"
