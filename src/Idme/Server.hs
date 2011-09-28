@@ -5,7 +5,7 @@ import Control.Concurrent.Chan (writeChan)
 import Network (PortID (PortNumber), Socket, accept, listenOn)
 import System.IO (BufferMode (LineBuffering), Handle, hSetBuffering)
 
-import Idme.Config (Config, dataDir)
+import Idme.Config (Config, dataFile)
 import Idme.Sync (runSync)
 import Idme.Log (LogMessage(InfoLog), runLogger, stdoutLogger)
 import Idme.Worker (handleClient)
@@ -15,7 +15,7 @@ import Idme.Worker (handleClient)
 runServer :: Config -> IO ()
 runServer cfg = do
     lChan <- runLogger stdoutLogger
-    sChan <- runSync "ids.db"
+    sChan <- runSync $ dataFile cfg
     socket <- listenOn (PortNumber 8888)
 
     writeChan lChan $ InfoLog "Starting things up!"
