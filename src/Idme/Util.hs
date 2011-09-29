@@ -1,5 +1,6 @@
-module Idme.Util (condM, constF, pairOf, (>>-)) where
+module Idme.Util (condA, constF, pairOf, (>>-)) where
 
+import Control.Applicative (Applicative, pure)
 import Data.Functor ((<$))
 
 
@@ -17,7 +18,6 @@ pairOf :: a -> (a, a)
 pairOf a = (a, a)
 
 -- | Inspect given value and optionally execute action
-condM :: Monad m => a -> (a -> Bool) -> (a -> m b) -> m a
-condM v t a = if t v then a v >> return v else return v
-
+condA :: Applicative a => b -> (b -> Bool) -> (b -> a c) -> a b
+condA v t a = if t v then constF a v else pure v
 

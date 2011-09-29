@@ -10,7 +10,7 @@ import System.Directory (doesFileExist)
 import System.IO (withFile, IOMode(WriteMode, ReadMode))
 
 import Idme.Transaction (IdTVar, Namespace, putId, getNs)
-import Idme.Util ((>>-), condM, pairOf)
+import Idme.Util ((>>-), condA, pairOf)
 
 
 -- | Filename to load/save db
@@ -42,7 +42,7 @@ loop :: DbFileName -> IdMap -> IdChan -> IO ()
 loop f m c = do
     tv <- readChan c
     ns <- getNs tv
-    resp <- condM (incrId ns m) shouldResync (save f . respMap)
+    resp <- condA (incrId ns m) shouldResync (save f . respMap)
     putId (show $ respId resp) tv
     loop f (respMap resp) c
 
